@@ -614,7 +614,7 @@ void HWComposer::eventControl(int disp, int event, int enabled) {
                         }
                     }
                 } else {
-                    err = hwcEventControl(mHwc, disp, event, enabled);
+                    err = mHwc->eventControl ? mHwc->eventControl(mHwc, disp, event, enabled) : NO_ERROR;
                 }
                 // error here should not happen -- not sure what we should
                 // do if it does.
@@ -890,14 +890,17 @@ status_t HWComposer::release(int disp) {
         if (hwcHasVsyncEvent(mHwc)) {
             eventControl(disp, HWC_EVENT_VSYNC, 0);
         }
-        return (status_t)hwcBlank(mHwc, disp, 1);
+        if(mHwc->blank)
+        {
+            return (status_t)hwcBlank(mHwc, disp, 1);
+        }
     }
     return NO_ERROR;
 }
 
 status_t HWComposer::acquire(int disp) {
     LOG_FATAL_IF(disp >= VIRTUAL_DISPLAY_ID_BASE);
-    if (mHwc) {
+    if (mHwc && mHwc->blank) {
         return (status_t)hwcBlank(mHwc, disp, 0);
     }
     return NO_ERROR;
